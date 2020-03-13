@@ -1,5 +1,4 @@
-const { exec, execSync, spawn } = require('child_process')
-const shellJs = require('shelljs');
+const { exec, execSync } = require('child_process')
 const utils = require('./ultis/utils')
 const path = require('path')
 const fs = require('fs')
@@ -13,43 +12,39 @@ const paths = {
 
 
 
-// startAsynForEach([1, 2, 3]);
-let opts = {}
 let repo = 'repo'
 
-createGitDirectory = () => {
-    let gitPath = 'git'
-    var initArgs = [
-        'init',
-    ]
+createGitDirectory = (param) => {
+    let initCommand = 'git init'
     let echoCommand = 'echo . > Readme.txt'
     let addCommand = ' git add .'
     let commitCommand = 'git commit -m "firstCommit"'
 
-    spawn(gitPath, initArgs, opts);
-    execSync(echoCommand);
-    execSync(addCommand);
-    execSync(commitCommand);
+    execSync(initCommand, param);
+    execSync(echoCommand, param);
+    execSync(addCommand, param);
+    execSync(commitCommand, param);
 }
-const waitForCreateGitDir = () => new Promise((resolve, reject) => {
-    resolve(createGitDirectory());
-});
-const waitForAddNewBranch = (templateName) => new Promise((resolve, reject) => {
-    resolve(adddNewBranch(templateName));
-});
-const waitForCommitNewBranch = (templateName) => new Promise((resolve, reject) => {
-    resolve(commitNewBranch(templateName));
-});
-adddNewBranch = (templateName) => {
+adddNewBranch = (templateName, param) => {
     let createNewBranchCommand = `git checkout -b ${templateName}`
     let addCommand = ' git add .'
-    execSync(createNewBranchCommand);
-    execSync(addCommand);
+    execSync(createNewBranchCommand, param);
+    execSync(addCommand, param);
 }
-commitNewBranch = (templateName) => {
+commitNewBranch = (templateName, param) => {
     let commitCommand = `git commit -m "${templateName}"`
-    execSync(commitCommand);
+    execSync(commitCommand, param);
 }
+const waitForCreateGitDir = (param) => new Promise((resolve, reject) => {
+    resolve(createGitDirectory(param));
+});
+const waitForAddNewBranch = (templateName, param) => new Promise((resolve, reject) => {
+    resolve(adddNewBranch(templateName, param));
+});
+const waitForCommitNewBranch = (templateName, param) => new Promise((resolve, reject) => {
+    resolve(commitNewBranch(templateName, param));
+});
+
 createStudentBranch = (students) => {
     for (let i = 0; i < students.length; i++) {
         exec('git branch ' + students[i].RollNumber);
@@ -63,13 +58,10 @@ async function asyncForEach(array, callback) {
 const startCreateGit = async (arr, labPath) => {
     await asyncForEach(arr, async (element) => {
         let labDirPath = path.join(labPath, element.Name);
-        shellJs.cd(labDirPath)
-        utils.createDirIfNotExists(repo)
+        utils.createDirIfNotExists(path.join(labDirPath, repo));
         let repoPath = path.join(labDirPath, repo)
-        shellJs.cd(repoPath);
-        // console.log(repoPath);
-        await waitForCreateGitDir();
-        // createGitDirectory();
+        console.log(repoPath);
+        await waitForCreateGitDir({ cwd: repoPath });
     });
     console.log('Done');
 }
@@ -83,29 +75,24 @@ const extractTemplate = async (templatePath, param) => {
 const startCreateBranch = async (arr, labPath) => {
     await asyncForEach(arr, async (element) => {
         let labDirPath = path.join(labPath, element.Name);
-        shellJs.cd(labDirPath)
-        utils.createDirIfNotExists(repo)
+        utils.createDirIfNotExists(path.join(labDirPath, repo));
         let repoPath = path.join(labDirPath, repo)
-        shellJs.cd(repoPath.toString());
         let templateName = 'Template1'
         let templatePath = path.join(labPath, 'Template', `${templateName}.zip`)
         await extractTemplate(templatePath, { path: repoPath });
-        await waitForAddNewBranch(templateName);
-        await waitForCommitNewBranch(templateName);
+        await waitForAddNewBranch(templateName, { cwd: repoPath });
+        await waitForCommitNewBranch(templateName, { cwd: repoPath });
         console.log('Done');
     });
 }
 mainFunction = () => {
     var assignmentArr = utils.readAssignment();
-    const labPath = path.join(__dirname, paths.DATA_FOLDER, 'Lab321');
-    shellJs.cd(labPath.toString());
+    const labPath = path.join(paths.DATA_FOLDER, 'Lab321');
     startCreateGit(assignmentArr, labPath)
-    // example(assignmentArr, labPath)
 }
 secondFunction = () => {
     var assignmentArr = utils.readAssignment();
-    const labPath = path.join(__dirname, paths.DATA_FOLDER, 'Lab321');
-    shellJs.cd(labPath.toString());
+    const labPath = path.join(paths.DATA_FOLDER, 'Lab321');
     startCreateBranch(assignmentArr, labPath)
 }
 thirdFunction = () => {
