@@ -34,20 +34,21 @@ createGitDirectory = () => {
 const waitForCreateGitDir = () => new Promise((resolve, reject) => {
     resolve(createGitDirectory());
 });
+const waitForAddNewBranch = (templateName) => new Promise((resolve, reject) => {
+    resolve(adddNewBranch(templateName));
+});
 const waitForCommitNewBranch = (templateName) => new Promise((resolve, reject) => {
     resolve(commitNewBranch(templateName));
 });
-commitNewBranch = (templateName) => {
+adddNewBranch = (templateName) => {
     let createNewBranchCommand = `git checkout -b ${templateName}`
     let addCommand = ' git add .'
-    let commitCommand = `git commit -m "${templateName}"`
     execSync(createNewBranchCommand);
-    exec(addCommand, (err, stdout, stderr) => {
-        if (err) {
-            console.log(err);
-        }
-        exec(commitCommand);
-    });
+    execSync(addCommand);
+}
+commitNewBranch = (templateName) => {
+    let commitCommand = `git commit -m "${templateName}"`
+    execSync(commitCommand);
 }
 createStudentBranch = (students) => {
     for (let i = 0; i < students.length; i++) {
@@ -72,6 +73,13 @@ const startCreateGit = async (arr, labPath) => {
     });
     console.log('Done');
 }
+const extractTemplate = async (templatePath, param) => {
+    return new Promise((res, rej) => {
+        fs.createReadStream(templatePath)
+            .pipe(unzipper.Extract(param))
+            .on('close', res);
+    })
+}
 const startCreateBranch = async (arr, labPath) => {
     await asyncForEach(arr, async (element) => {
         let labDirPath = path.join(labPath, element.Name);
@@ -81,8 +89,8 @@ const startCreateBranch = async (arr, labPath) => {
         shellJs.cd(repoPath.toString());
         let templateName = 'Template1'
         let templatePath = path.join(labPath, 'Template', `${templateName}.zip`)
-        fs.createReadStream(templatePath)
-            .pipe(unzipper.Extract({ path: repoPath }));
+        await extractTemplate(templatePath, { path: repoPath });
+        await waitForAddNewBranch(templateName);
         await waitForCommitNewBranch(templateName);
         console.log('Done');
     });
