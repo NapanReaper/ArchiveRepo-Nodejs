@@ -8,5 +8,10 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "node-fs-extra": "^0.8.2",
+    "shelljs": "^0.8.3",
+    "unzipper": "^0.10.10"
+  }
 }
