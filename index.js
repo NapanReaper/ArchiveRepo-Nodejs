@@ -1,4 +1,4 @@
-const { exec, spawn } = require('child_process')
+const { exec, execSync, spawn } = require('child_process')
 const shellJs = require('shelljs');
 const utils = require('./ultis/utils')
 const path = require('path')
@@ -27,21 +27,13 @@ createGitDirectory = () => {
     let commitCommand = 'git commit -m "firstCommit"'
 
     spawn(gitPath, initArgs, opts);
-    exec(echoCommand, (err, stdout, stderr) => {
-        if (err) {
-            console.log("error at echo File");
-        }
-        exec(addCommand, (err, stdout, stderr) => {
-            if (err) {
-                console.log(err);
-            }
-            // console.log('stdout', stdout);
-            // console.log(`stderr: ${stderr}`);
-            exec(commitCommand);
-        });
-    });
+    execSync(echoCommand);
+    execSync(addCommand);
+    execSync(commitCommand);
 }
-const waitForCreateGitDir = () => new Promise(r => createGitDirectory())
+const waitForCreateGitDir = () => new Promise((resolve, reject) => {
+    resolve(createGitDirectory());
+});
 const waitForcommitNewBranch = () => new Promise(r => commitNewBranch())
 commitNewBranch = (templateName) => {
     let createNewBranchCommand = 'git checkout -b '
@@ -66,20 +58,21 @@ createStudentBranch = (students) => {
     }
 }
 
-const example = async () => {
-    const nums = [1, 2, 3];
-    for (const num of nums) {
-        const result = await returnNum(num);
-        console.log(result);
+const example = async (arr, labPath) => {
+    for (const element of arr) {
+        let labDirPath = path.join(labPath, element.Name);
+        shellJs.cd(labDirPath)
+        utils.createDirIfNotExists(repo)
+        let repoPath = path.join(labDirPath, repo)
+        shellJs.cd(repoPath);
+        await waitForCreateGit();
     }
     console.log('after forEach');
 }
 
-const returnNum = x => {
+const waitForCreateGit = () => {
     return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            resolve(x);
-        }, 500);
+        resolve(createGitDirectory());
     });
 }
 async function asyncForEach(array, callback) {
@@ -94,7 +87,7 @@ const startCreateGit = async (arr, labPath) => {
         utils.createDirIfNotExists(repo)
         let repoPath = path.join(labDirPath, repo)
         shellJs.cd(repoPath);
-        console.log(repoPath);
+        // console.log(repoPath);
         await waitForCreateGitDir();
         // createGitDirectory();
     });
@@ -121,7 +114,7 @@ mainFunction = () => {
     const labPath = path.join(__dirname, paths.DATA_FOLDER, 'Lab321');
     shellJs.cd(labPath.toString());
     startCreateGit(assignmentArr, labPath)
-    // createStudentBranch(students);
+    // example(assignmentArr, labPath)
 }
 secondFunction = () => {
     var assignmentArr = utils.readAssignment();
