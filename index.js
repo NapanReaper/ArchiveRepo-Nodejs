@@ -34,46 +34,25 @@ createGitDirectory = () => {
 const waitForCreateGitDir = () => new Promise((resolve, reject) => {
     resolve(createGitDirectory());
 });
-const waitForcommitNewBranch = () => new Promise(r => commitNewBranch())
+const waitForCommitNewBranch = (templateName) => new Promise((resolve, reject) => {
+    resolve(commitNewBranch(templateName));
+});
 commitNewBranch = (templateName) => {
-    let createNewBranchCommand = 'git checkout -b '
+    let createNewBranchCommand = `git checkout -b ${templateName}`
     let addCommand = ' git add .'
     let commitCommand = `git commit -m "${templateName}"`
-    exec(createNewBranchCommand + templateName, (err, stdout, stderr) => {
+    execSync(createNewBranchCommand);
+    exec(addCommand, (err, stdout, stderr) => {
         if (err) {
             console.log(err);
         }
-        exec(addCommand, (err, stdout, stderr) => {
-            if (err) {
-                console.log(err);
-            }
-            exec(commitCommand);
-        });
-
-    })
+        exec(commitCommand);
+    });
 }
 createStudentBranch = (students) => {
     for (let i = 0; i < students.length; i++) {
         exec('git branch ' + students[i].RollNumber);
     }
-}
-
-const example = async (arr, labPath) => {
-    for (const element of arr) {
-        let labDirPath = path.join(labPath, element.Name);
-        shellJs.cd(labDirPath)
-        utils.createDirIfNotExists(repo)
-        let repoPath = path.join(labDirPath, repo)
-        shellJs.cd(repoPath);
-        await waitForCreateGit();
-    }
-    console.log('after forEach');
-}
-
-const waitForCreateGit = () => {
-    return new Promise((resolve, reject) => {
-        resolve(createGitDirectory());
-    });
 }
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
@@ -103,11 +82,10 @@ const startCreateBranch = async (arr, labPath) => {
         let templateName = 'Template1'
         let templatePath = path.join(labPath, 'Template', `${templateName}.zip`)
         fs.createReadStream(templatePath)
-            .pipe(unzipper.Extract({ path: repoPath }))
-            .on('close',
-                await waitForcommitNewBranch(templateName));
+            .pipe(unzipper.Extract({ path: repoPath }));
+        await waitForCommitNewBranch(templateName);
+        console.log('Done');
     });
-    console.log('Done');
 }
 mainFunction = () => {
     var assignmentArr = utils.readAssignment();
@@ -126,5 +104,5 @@ thirdFunction = () => {
     var students = utils.readJSON('SE1626_LAB321');
     createStudentBranch(students);
 }
-mainFunction();
-// secondFunction();
+// mainFunction();
+secondFunction();
