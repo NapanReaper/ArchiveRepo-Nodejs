@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "fs-extra": "^8.1.0",
     "node-fs-extra": "^0.8.2",
     "shelljs": "^0.8.3",
     "unzipper": "^0.10.10"

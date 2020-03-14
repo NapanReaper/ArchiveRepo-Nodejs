@@ -1,7 +1,7 @@
 const { exec, execSync } = require('child_process')
 const utils = require('./ultis/utils')
 const path = require('path')
-const fs = require('fs')
+const fs = require('fs-extra')
 const unzipper = require('unzipper')
 const paths = {
     DATA_FOLDER: './Data',
@@ -9,8 +9,6 @@ const paths = {
     TEMPLATE_FOLDER: 'Template'
 }
 //Git create
-
-
 
 let repo = 'repo'
 
@@ -44,7 +42,13 @@ const waitForAddNewBranch = (templateName, param) => new Promise((resolve, rejec
 const waitForCommitNewBranch = (templateName, param) => new Promise((resolve, reject) => {
     resolve(commitNewBranch(templateName, param));
 });
+const waitForRemoveTemplate = (templatePath) => new Promise((resolve, reject) => {
+    resolve(removeTemplate(templatePath));
+});
 
+removeTemplate = (templatePath) => {
+    fs.removeSync(templatePath);
+}
 createStudentBranch = (students) => {
     for (let i = 0; i < students.length; i++) {
         exec('git branch ' + students[i].RollNumber);
@@ -77,11 +81,18 @@ const startCreateBranch = async (arr, labPath) => {
         let labDirPath = path.join(labPath, element.Name);
         utils.createDirIfNotExists(path.join(labDirPath, repo));
         let repoPath = path.join(labDirPath, repo)
-        let templateName = 'Template1'
-        let templatePath = path.join(labPath, 'Template', `${templateName}.zip`)
-        await extractTemplate(templatePath, { path: repoPath });
-        await waitForAddNewBranch(templateName, { cwd: repoPath });
-        await waitForCommitNewBranch(templateName, { cwd: repoPath });
+        let templateArr = element.Template.split(",")
+        await asyncForEach(templateArr, async (element) => {
+            let templatePath = path.join(labPath, 'Template', element)
+            console.log(templatePath);
+            let templateName = element.replace('.zip', '');
+            let repoTempPath = path.join(repoPath, templateName)
+            console.log(repoTempPath);
+            await extractTemplate(templatePath, { path: repoPath });
+            await waitForAddNewBranch(`Template_${templateName}`, { cwd: repoPath });
+            await waitForCommitNewBranch(`Template_${templateName}`, { cwd: repoPath });
+            await waitForRemoveTemplate(repoTempPath);
+        });
         console.log('Done');
     });
 }
@@ -99,5 +110,12 @@ thirdFunction = () => {
     var students = utils.readJSON('SE1626_LAB321');
     createStudentBranch(students);
 }
-// mainFunction();
+fourthFunction = () => {
+    var assignmentArr = utils.readAssignment();
+    // console.log(assignmentArr[0].Template.split(","))
+    assignmentArr.forEach(element => console.log(
+        element.Template.split(",")));
+}
+mainFunction();
 secondFunction();
+// fourthFunction();
